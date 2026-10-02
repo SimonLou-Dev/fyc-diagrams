@@ -1,0 +1,71 @@
+# Thème commun du cours (D2).
+#
+# REGLE : ce fichier ne doit contenir QUE des vars et des classes.
+# Tout objet déclaré ici (un rectangle, une flèche...) apparaîtrait
+# dans chaque diagramme, car scripts/render.sh l'injecte en tête de
+# chaque source avant l'envoi à Kroki.
+
+vars: {
+  d2-config: {
+    # ELK place beaucoup mieux que dagre les conteneurs imbriqués
+    # (région > VPC > cluster > namespace)
+    layout-engine: elk
+    pad: 30
+  }
+}
+
+classes: {
+  # Frontières logiques ou réseau : région, VPC, cluster, namespace, projet OpenStack
+  zone: {
+    style: {
+      fill: "#FAFAFA"
+      stroke: "#9E9E9E"
+      stroke-dash: 4
+      border-radius: 6
+      font-color: "#424242"
+    }
+  }
+
+  # Composant applicatif ou d'infrastructure qui traite des requêtes
+  service: {
+    style: {
+      fill: "#E3F2FD"
+      stroke: "#1565C0"
+      border-radius: 4
+    }
+  }
+
+  # Stockage persistant : SGBD, volume, bucket
+  database: {
+    shape: cylinder
+    style: {
+      fill: "#FFF3E0"
+      stroke: "#E65100"
+    }
+  }
+
+  # File de messages, bus d'événements
+  queue: {
+    shape: queue
+    style: {
+      fill: "#F3E5F5"
+      stroke: "#6A1B9A"
+    }
+  }
+
+  # Acteurs ou systèmes hors du périmètre : utilisateurs, API tierces
+  external: {
+    style: {
+      fill: "#ECEFF1"
+      stroke: "#455A64"
+    }
+  }
+
+  # Flux asynchrone (connexion pointillée), à appliquer sur une flèche
+  flux-async: {
+    style: {
+      stroke: "#6A1B9A"
+      stroke-dash: 5
+    }
+  }
+}

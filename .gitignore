@@ -1,0 +1,3 @@
+# Les SVG sont des artefacts de build, publiés par la CI sur Pages.
+# Ils ne sont jamais versionnés.
+public/

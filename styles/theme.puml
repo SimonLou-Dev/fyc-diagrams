@@ -1,0 +1,35 @@
+' Thème commun du cours (PlantUML).
+' Injecté par scripts/render.sh juste après la ligne @startuml.
+' Mêmes couleurs que styles/theme.d2 : toute modification doit
+' être reportée dans les deux fichiers.
+
+skinparam shadowing false
+skinparam roundCorner 6
+skinparam defaultFontSize 13
+skinparam ArrowColor #424242
+
+skinparam rectangle {
+  BackgroundColor #E3F2FD
+  BorderColor #1565C0
+}
+
+skinparam database {
+  BackgroundColor #FFF3E0
+  BorderColor #E65100
+}
+
+skinparam queue {
+  BackgroundColor #F3E5F5
+  BorderColor #6A1B9A
+}
+
+skinparam actor {
+  BackgroundColor #ECEFF1
+  BorderColor #455A64
+}
+
+skinparam package {
+  BackgroundColor #FAFAFA
+  BorderColor #9E9E9E
+  BorderStyle dashed
+}

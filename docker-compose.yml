@@ -1,0 +1,9 @@
+# Kroki en local, même image que la CI.
+# Démarrage : docker compose up -d   Arrêt : docker compose down
+services:
+  kroki:
+    # Garder la même version que dans .github/workflows/diagrams.yml
+    image: yuzutech/kroki:latest
+    ports:
+      - "127.0.0.1:8000:8000"   # exposé uniquement sur la machine locale
+    restart: unless-stopped

@@ -1,0 +1,39 @@
+# Import du thème : utile en local (d2 CLI, extension VS Code).
+# En CI, cette ligne est retirée et le thème est injecté par render.sh.
+...@../styles/theme
+
+title: |md
+  # Application conteneurisée sur EKS
+| {near: top-center}
+
+user: Utilisateurs {
+  class: external
+  shape: person
+}
+
+aws: AWS eu-west-3 {
+  class: zone
+
+  vpc: VPC 10.0.0.0/16 {
+    class: zone
+
+    eks: Cluster EKS {
+      class: zone
+
+      ingress: Ingress NGINX {class: service}
+      api: "API (Deployment x3)" {class: service}
+      worker: "Worker (Deployment x2)" {class: service}
+
+      ingress -> api: HTTP
+    }
+
+    rds: PostgreSQL (RDS) {class: database}
+    sqs: File SQS {class: queue}
+  }
+}
+
+user -> aws.vpc.eks.ingress: HTTPS
+aws.vpc.eks.api -> aws.vpc.rds: TCP 5432
+aws.vpc.eks.api -> aws.vpc.sqs: publie {class: flux-async}
+aws.vpc.sqs -> aws.vpc.eks.worker: consomme {class: flux-async}
+aws.vpc.eks.worker -> aws.vpc.rds: écrit
