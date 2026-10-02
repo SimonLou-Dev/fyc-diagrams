@@ -1,0 +1,75 @@
+@startnwdiag
+' Section 1.2 : infrastructure de l'application exemple, en schema "bus".
+' Chaque reseau est une barre horizontale ; un serveur raccorde a une barre
+' y possede une interface, avec son adresse. Le dernier octet est identique
+' sur tous les reseaux d'un meme serveur (DB-0 = .20 partout).
+
+nwdiag {
+  ' Hors du perimetre : Internet et l'acces des administrateurs.
+' Le bastion OOB a son propre acces, non represente pour garder le schema lisible.
+  internet [shape = cloud, description = "Internet"];
+  internet -- routeur;
+
+  vpn [shape = cloud, description = "VPN WireGuard + MFA\npostes d'admin"];
+  vpn -- bastion;
+
+  network PUBLIC {
+    address = "10.255.255.0/24 (VIP .250)";
+    routeur [description = "routeur public", address = ".254"];
+    rp0 [description = "R-PROXY-0", address = ".10"];
+    rp1 [description = "R-PROXY-1", address = ".11"];
+  }
+
+  network APPLI {
+    address = "10.0.0.0/24";
+    rp0 [address = ".10"];
+    rp1 [address = ".11"];
+    ap0 [description = "APPLI-0", address = ".30"];
+    ap1 [description = "APPLI-1", address = ".31"];
+    ap2 [description = "APPLI-2", address = ".32"];
+  }
+
+  network DONNEES {
+    address = "172.29.20.0/24";
+    ap0 [address = ".30"];
+    ap1 [address = ".31"];
+    ap2 [address = ".32"];
+    db0 [description = "DB-0", address = ".20"];
+    db1 [description = "DB-1", address = ".21"];
+    db2 [description = "DB-2", address = ".22"];
+  }
+
+  network SAUVEGARDE {
+    address = "172.30.0.0/24";
+    db0 [address = ".20"];
+    db1 [address = ".21"];
+    db2 [address = ".22"];
+    backup [description = "BACKUP\nmode pull", address = ".100"];
+  }
+
+  ' Le reseau ADMIN touche tous les serveurs : c'est lui qu'il faut isoler (section 1.3)
+  network ADMIN {
+    address = "192.168.0.0/24";
+    color = "#FAEEDA";
+    rp0 [address = ".10"];
+    rp1 [address = ".11"];
+    ap0 [address = ".30"];
+    ap1 [address = ".31"];
+    ap2 [address = ".32"];
+    db0 [address = ".20"];
+    db1 [address = ".21"];
+    db2 [address = ".22"];
+    backup [address = ".100"];
+    bastion [description = "BASTION\nSSH + RBAC", address = ".1"];
+    supervision [description = "SUPERVISION\nPrometheus", address = ".2"];
+  }
+
+  ' Reseau hors bande : bastion dedie et interfaces de gestion (BMC)
+  network OOB {
+    address = "192.168.100.0/24";
+    color = "#FAEEDA";
+    bastion_oob [description = "BASTION OOB\naccès VPN séparé", address = ".1"];
+    bmc [description = "BMC de chaque serveur\niDRAC / iLO / IPMI", address = ".x"];
+  }
+}
+@endnwdiag
