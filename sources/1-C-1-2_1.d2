@@ -1,0 +1,100 @@
+# Section 1.2 : infrastructure de l'application exemple
+# Chaque reseau est represente par une barre ; une liaison = une interface du serveur sur ce reseau.
+# Chaque serveur garde le meme numero d'hote sur tous ses reseaux (DB-0 = .20 partout).
+
+direction: down
+
+classes: {
+  reseau: {
+    shape: rectangle
+    width: 520
+    height: 36
+    style: {fill: "#E6F1FB"; stroke: "#185FA5"; font-size: 15; bold: true; border-radius: 4}
+  }
+  serveur: {
+    shape: rectangle
+    style: {fill: "#FFFFFF"; stroke: "#5F5E5A"; border-radius: 6; font-size: 14}
+  }
+  transverse: {
+    shape: rectangle
+    style: {fill: "#E1F5EE"; stroke: "#0F6E56"; border-radius: 6; font-size: 14}
+  }
+  lien: {
+    style: {stroke: "#888780"; font-size: 13}
+  }
+}
+
+internet: "Internet\nrouteur .254" {shape: cloud}
+
+# Reseaux
+public: "PUBLIC 10.255.255.0/24\nVIP .250 (Keepalived)" {class: reseau}
+appli: "APPLI 10.0.0.0/24" {class: reseau}
+donnees: "DONNÉES 172.29.20.0/24" {class: reseau}
+admin: "ADMIN 192.168.0.0/24" {class: reseau; style.fill: "#FAEEDA"; style.stroke: "#854F0B"}
+sauvegarde: "SAUVEGARDE 172.30.0.0/24" {class: reseau}
+oob: "OOB 192.168.100.0/24" {class: reseau; style.fill: "#FAEEDA"; style.stroke: "#854F0B"}
+
+# Serveurs de production
+rp0: "R-PROXY-0\n.10" {class: serveur}
+rp1: "R-PROXY-1\n.11" {class: serveur}
+ap0: "APPLI-0\n.30" {class: serveur}
+ap1: "APPLI-1\n.31" {class: serveur}
+ap2: "APPLI-2\n.32" {class: serveur}
+db0: "DB-0\n.20" {class: serveur}
+db1: "DB-1\n.21" {class: serveur}
+db2: "DB-2\n.22" {class: serveur}
+
+# Zones transverses
+bastion: "BASTION\n.1, SSH + RBAC" {class: transverse; style.stroke-width: 3}
+supervision: "SUPERVISION\n.2, Prometheus" {class: transverse}
+backup: "BACKUP\n.100, mode pull\ncopie hors site" {class: transverse}
+bastion_oob: "BASTION OOB\n.1" {class: transverse}
+bmc: "BMC de chaque serveur\niDRAC, iLO, IPMI" {class: transverse}
+vpn: "VPN WireGuard + MFA\npostes d'admin" {shape: rectangle; style: {stroke-dash: 4; border-radius: 6}}
+
+# Chemin utilisateur
+internet -- public {class: lien}
+public -- rp0 {class: lien}
+public -- rp1 {class: lien}
+
+# Reseau APPLI : proxies et serveurs applicatifs
+rp0 -- appli {class: lien}
+rp1 -- appli {class: lien}
+appli -- ap0 {class: lien}
+appli -- ap1 {class: lien}
+appli -- ap2 {class: lien}
+
+# Reseau DONNEES : serveurs applicatifs et bases
+ap0 -- donnees {class: lien}
+ap1 -- donnees {class: lien}
+ap2 -- donnees {class: lien}
+donnees -- db0 {class: lien}
+donnees -- db1 {class: lien}
+donnees -- db2 {class: lien}
+
+# Reseau SAUVEGARDE : bases et serveur de backup
+db0 -- sauvegarde {class: lien}
+db1 -- sauvegarde {class: lien}
+db2 -- sauvegarde {class: lien}
+sauvegarde -- backup {class: lien}
+
+# Reseau ADMIN : tous les serveurs y ont une interface
+rp0 -- admin {class: lien}
+rp1 -- admin {class: lien}
+ap0 -- admin {class: lien}
+ap1 -- admin {class: lien}
+ap2 -- admin {class: lien}
+db0 -- admin {class: lien}
+db1 -- admin {class: lien}
+db2 -- admin {class: lien}
+backup -- admin {class: lien}
+admin -- bastion {class: lien}
+admin -- supervision {class: lien}
+
+# Acces des administrateurs : bastion principal et bastion de secours hors bande
+vpn -> bastion: SSH
+vpn -> bastion_oob: SSH (secours)
+
+# Reseau OOB : bastion dedie et interfaces de gestion des serveurs
+bastion_oob -- oob {class: lien}
+bmc -- oob {class: lien}

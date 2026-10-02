@@ -1,0 +1,87 @@
+# Section 1.1 : segmentation sur deux niveaux
+# Niveau 1 : chaque application vit dans son propre perimetre.
+# Niveau 2 : chaque application est decoupee en zones.
+# Les zones transverses touchent toutes les applications.
+
+# Grille racine : Internet en haut, applications au milieu, zones transverses en bas
+grid-rows: 3
+grid-gap: 70
+
+# Classes de style reutilisees par les noeuds
+classes: {
+  zone-app: {
+    style: {fill: "#FAECE7"; stroke: "#D85A30"; border-radius: 8; font-size: 16}
+  }
+  zone-transverse: {
+    style: {fill: "#E1F5EE"; stroke: "#0F6E56"; border-radius: 8; font-size: 16}
+  }
+  perimetre: {
+    style: {fill: transparent; stroke-dash: 4; border-radius: 12}
+  }
+}
+
+# Ligne du haut : le nuage Internet encadre de deux cases invisibles pour le centrer
+haut: "" {
+  grid-columns: 3
+  horizontal-gap: 0
+  style: {fill: transparent; stroke: transparent}
+  gauche: "" {width: 260; height: 10; style: {fill: transparent; stroke: transparent}}
+  internet: Internet {shape: cloud; width: 160; height: 90}
+  droite: "" {width: 260; height: 10; style: {fill: transparent; stroke: transparent}}
+}
+
+# Conteneur invisible qui place les deux applications cote a cote
+applications: "" {
+  grid-columns: 2
+  grid-gap: 80
+  style: {fill: transparent; stroke: transparent}
+
+  app_a: Application A {
+    class: perimetre
+    label.near: top-left
+    grid-columns: 1
+    grid-gap: 30
+    dmz: Exposition (DMZ) {class: zone-app; width: 220}
+    applicative: Applicative {class: zone-app; width: 220}
+    donnees: Données {class: zone-app; width: 220}
+  }
+
+  app_b: Application B {
+    class: perimetre
+    label.near: top-left
+    grid-columns: 1
+    grid-gap: 30
+    dmz: Exposition (DMZ) {class: zone-app; width: 220}
+    applicative: Applicative {class: zone-app; width: 220}
+    donnees: Données {class: zone-app; width: 220}
+  }
+}
+
+# Flux entrants depuis Internet : uniquement vers la DMZ de chaque application
+haut.internet -> applications.app_a.dmz: HTTPS
+haut.internet -> applications.app_b.dmz: HTTPS
+
+# Flux internes a chaque application
+applications.app_a.dmz -> applications.app_a.applicative
+applications.app_a.applicative -> applications.app_a.donnees
+applications.app_b.dmz -> applications.app_b.applicative
+applications.app_b.applicative -> applications.app_b.donnees
+
+# Seul flux autorise entre les deux applications, par exemple un appel d'API
+applications.app_a.applicative -> applications.app_b.applicative: API autorisée {
+  style.stroke-dash: 4
+}
+
+# Zones transverses : placees sous les applications, elles les atteignent toutes
+transverses: Zones transverses {
+  class: perimetre
+  grid-columns: 3
+  grid-gap: 24
+  admin: "Administration\nbastion, supervision" {class: zone-transverse}
+  sauvegarde: "Sauvegarde\nmode pull, dépôt immuable" {class: zone-transverse}
+  oob: "Hors bande\nBMC, consoles série" {class: zone-transverse}
+}
+
+# Les zones transverses atteignent chaque application
+transverses -> applications.app_a
+transverses -> applications.app_b

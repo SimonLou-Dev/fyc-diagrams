@@ -7,12 +7,9 @@
 name: Diagrams
 
 on:
-  pull_request:
-    paths: ["sources/**", "styles/**", "scripts/**", ".github/workflows/**"]
   push:
-    branches: [main]
-    paths: ["sources/**", "styles/**", "scripts/**", ".github/workflows/**"]
-  workflow_dispatch:
+    branches: [ main ]
+    paths: [ "sources/**", "styles/**", "scripts/**", ".github/workflows/**" ]
 
 permissions:
   contents: read
@@ -30,38 +27,38 @@ jobs:
         # Remplacer "latest" par une version fixe (ex. tag publié sur Docker Hub)
         # pour qu'une mise à jour de D2 ne change pas vos rendus sans prévenir
         image: yuzutech/kroki:latest
-        ports: ["8000:8000"]
+        ports: [ "8000:8000" ]
     steps:
-      - uses: actions/checkout@v4
+    - uses: actions/checkout@v4
 
-      - name: Attendre que Kroki soit prêt
-        run: |
-          for i in $(seq 1 30); do
-            curl -sf http://localhost:8000/health > /dev/null && exit 0
-            sleep 2
-          done
-          echo "Kroki n'a pas démarré" >&2
-          exit 1
+    - name: Attendre que Kroki soit prêt
+      run: |
+        for i in $(seq 1 30); do
+          curl -sf http://localhost:8000/health > /dev/null && exit 0
+          sleep 2
+        done
+        echo "Kroki n'a pas démarré" >&2
+        exit 1
 
-      - name: Rendu des diagrammes
-        env:
-          KROKI_URL: http://localhost:8000
-        run: ./scripts/render.sh
+    - name: Rendu des diagrammes
+      env:
+        KROKI_URL: http://localhost:8000
+      run: ./scripts/render.sh
 
-      # L'artefact Pages n'est produit que pour main
-      - name: Préparer l'artefact Pages
-        if: github.event_name != 'pull_request'
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: public
+    # L'artefact Pages n'est produit que pour main
+    - name: Préparer l'artefact Pages
+      if: github.event_name != 'pull_request'
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: public
 
-      # Sur une PR, on expose les SVG pour relecture visuelle
-      - name: Exposer les SVG pour la relecture
-        if: github.event_name == 'pull_request'
-        uses: actions/upload-artifact@v4
-        with:
-          name: apercu-diagrammes
-          path: public
+    # Sur une PR, on expose les SVG pour relecture visuelle
+    - name: Exposer les SVG pour la relecture
+      if: github.event_name == 'pull_request'
+      uses: actions/upload-artifact@v4
+      with:
+        name: apercu-diagrammes
+        path: public
 
   deploy:
     if: github.event_name != 'pull_request'
@@ -74,5 +71,5 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4
+    - id: deployment
+      uses: actions/deploy-pages@v4
